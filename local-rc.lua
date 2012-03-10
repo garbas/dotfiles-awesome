@@ -75,45 +75,67 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 -- {{{ Wibox
 -- Create a textclock widget
 mytextclock = awful.widget.textclock({ align = "right" })
+
 --require('orglendar')
 --orglendar.files = { "/home/rok/todo.org" }
 --orglendar.register(mytextclock)
 
+-- {{{ Battery state Widget
+ 
+--require('wicked')
 
+--batterywidget = widget({ type = 'textbox', name = 'batterywidget', align = 'right' })
 
---mybattmon = widget({ type = "textbox", name = "mybattmon", align = "right" })
---function battery_status ()
---    local output={} --output buffer
---    local fd=io.popen("acpitool -b", "r") --list present batteries
---    local line=fd:read()
---    while line do --there might be several batteries.
---        local battery_num = string.match(line, "Battery \#(%d+)")
---        local battery_load = string.match(line, " (%d*\.%d+)%%")
---        local time_rem = string.match(line, "(%d+\:%d+)\:%d+")
---    local discharging
---    if string.match(line, "discharging")=="discharging" then --discharging: always red
---        discharging="<span color=\"#CC7777\">"
---    elseif tonumber(battery_load)>85 then --almost charged
---        discharging="<span color=\"#77CC77\">"
---    else --charging
---        discharging="<span color=\"#CCCC77\">"
+--wicked.register(batterywidget, 'function', function (widget, args)
+--    local f = io.open('/proc/acpi/battery/BAT0/info')
+--    local infocontents = f:read('*all')
+--    f:close()
+--
+--    f = io.open('/proc/acpi/battery/BAT0/state')
+--    local statecontents = f:read('*all')
+--    f:close()
+--
+--    local status, _
+--    -- Find the full capacity (from info)
+--    local full_cap
+--    
+--    status, _, full_cap = string.find(infocontents, "last full capacity:%s+(%d+).*")
+--
+--    -- Find the current capacity, state and (dis)charge rate (from state)
+--    local state, rate, current_cap
+--    
+--    status, _, state = string.find(statecontents, "charging state:%s+(%w+)")
+--    status, _, rate  = string.find(statecontents, "present rate:%s+(%d+).*")
+--    status, _, current_cap = string.find(statecontents, "remaining capacity:%s+(%d+).*")
+--
+--    local prefix, percent, time
+--    percent = current_cap / full_cap * 100
+--    if state == "charged" then
+--        return "AC: " .. fg("green", "100%")
+--    elseif state == "charging" then
+--        prefix = "AC: "
+--        time = (full_cap - current_cap) / rate
+--    elseif state == "discharging" then
+--        prefix = "Battery: "
+--        time = current_cap / rate
 --    end
---        if battery_num and battery_load and time_rem then
---            table.insert(output,discharging.."BAT#"..battery_num.." "..battery_load.."%% "..time_rem.."</span>")
---        elseif battery_num and battery_load then --remaining time unavailable
---            table.insert(output,discharging.."BAT#"..battery_num.." "..battery_load.."%%</span>")
---        end --even more data unavailable: we might be getting an unexpected output format, so let's just skip this line.
---        line=fd:read() --read next line
+--
+--    time_hour = math.floor(time)
+--    time_minute = math.floor((time - time_hour) * 60)
+--    
+--    percent = math.floor(percent)
+--    local percent_string
+--    if percent < 25 then
+--        percent_string = fg("red", percent .. "%")
+--    elseif percent < 50 then
+--        percent_string = fg("orange", percent .. "%")
+--    else
+--        percent_string = fg("green", percent .. "%")
 --    end
---    return table.concat(output," ") --FIXME: better separation for several batteries. maybe a pipe?
---end
---mybattmon.text = " " .. battery_status() .. " "
---my_battmon_timer=timer({timeout=30})
---my_battmon_timer:add_signal("timeout", function()
---    --mytextbox.text = " " .. os.date() .. " "
---    mybattmon.text = " " .. battery_status() .. " "
---end)
---my_battmon_timer:start()
+--
+--    return prefix .. percent_string .. " " .. string.format("(%02d:%02d)", time_hour, time_minute)
+--end, 2)
+-- }}}
 
 -- Create a systray
 mysystray = widget({ type = "systray" })
